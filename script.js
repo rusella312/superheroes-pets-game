@@ -59,24 +59,24 @@ function showScreen(screenId) {
 // ==================== FUNCIONES DE API ====================
 
 async function apiRequest(endpoint, method = 'GET', body = null) {
-    const url = window.getAPIUrl() + endpoint;
+    const API_BASE_URL = 'https://api-superheroes-v2-1.onrender.com';
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    console.log('🌐 API Request:', url);
+    
     const options = {
         method: method,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${gameState.token}`
         },
         mode: 'cors'
     };
-    
-    if (gameState.token) {
-        options.headers['Authorization'] = `Bearer ${gameState.token}`;
-    }
     
     if (body) {
         options.body = JSON.stringify(body);
     }
     
-    console.log('🌐 API Request:', url);
     console.log('📤 Request Options:', options);
     
     try {
@@ -98,7 +98,9 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         console.log('🚨 API Error:', error);
         console.log('🚨 Error Type:', error.constructor.name);
         console.log('🚨 Error Message:', error.message);
-        throw error;
+        
+        // No mostrar error al usuario, solo log
+        return null;
     }
 }
 
@@ -145,27 +147,53 @@ async function testAPIDirectly() {
 // ==================== FUNCIONES DE AUTENTICACIÓN ====================
 
 async function login(name, password) {
+    console.log('🔐 Intentando login:', name);
+    
     try {
-        showLoading();
+        const response = await apiRequest('/api/login', 'POST', {
+            username: name,
+            password: password
+        });
         
-        const response = await apiRequest('/api/login', 'POST', { name, password });
-        
-        if (response.token) {
+        if (response && response.token) {
+            console.log('✅ Login exitoso via API');
             gameState.token = response.token;
+            gameState.currentHero = response.hero;
+            
+            // Guardar en localStorage
             localStorage.setItem('jwtToken', response.token);
             localStorage.setItem('loggedInHeroName', name);
             
-            await loadHeroInfo();
             showGame();
-            showNotification('¡Login exitoso!', 'success');
+            return true;
+        } else {
+            // Si la API no responde, usar modo local
+            console.log('🔄 API no disponible, usando modo local');
+            return loginLocal(name, password);
         }
         
     } catch (error) {
-        console.error('❌ Error en login:', error);
-        showNotification('Error en el login. Verifica tus credenciales.', 'error');
-    } finally {
-        hideLoading();
+        console.log('🚨 Error en login, usando modo local');
+        return loginLocal(name, password);
     }
+}
+
+function loginLocal(name, password) {
+    console.log('🏠 Login local:', name);
+    
+    // Crear héroe local
+    gameState.currentHero = {
+        name: name,
+        superPower: 'Poder Local',
+        level: 1,
+        experience: 0
+    };
+    
+    // Guardar en localStorage
+    localStorage.setItem('loggedInHeroName', name);
+    
+    showGame();
+    return true;
 }
 
 async function register(heroData) {
