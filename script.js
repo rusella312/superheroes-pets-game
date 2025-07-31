@@ -11,6 +11,10 @@ let gameState = {
 
 // ==================== FUNCIONES DE UTILIDAD ====================
 
+function getAPIUrl() {
+    return 'https://api-superheroes-v2-1.onrender.com';
+}
+
 function loadLocalCoins() {
     const savedCoins = localStorage.getItem('userCoins');
     gameState.userCoins = savedCoins ? parseInt(savedCoins) : 0;
@@ -106,12 +110,18 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 
 async function testAPIConnection() {
     console.log('🔍 Probando conexión con la API...');
+    
     try {
-        const response = await apiRequest('/api/heroes');
-        console.log('✅ API conectada correctamente');
-        return true;
+        const response = await apiRequest('/');
+        if (response) {
+            console.log('✅ API conectada correctamente');
+            return true;
+        } else {
+            console.log('❌ API no disponible');
+            return false;
+        }
     } catch (error) {
-        console.error('❌ Error conectando a la API:', error);
+        console.log('❌ Error conectando a la API:', error);
         return false;
     }
 }
@@ -119,7 +129,7 @@ async function testAPIConnection() {
 async function testAPIDirectly() {
     console.log('🔍 Probando API directamente...');
     try {
-        const response = await fetch(window.getAPIUrl() + '/api/heroes', {
+        const response = await fetch(getAPIUrl() + '/api/heroes', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -467,18 +477,22 @@ function updatePetStats() {
     
     console.log('📊 Actualizando estadísticas para mascota:', gameState.currentPet.name);
     
-    // Mapeo directo de estadísticas
-    const stats = {
-        happiness: gameState.currentPet.felicidad || gameState.currentPet.happiness || 80,
-        hunger: gameState.currentPet.hambre || gameState.currentPet.hunger || 60,
-        energy: gameState.currentPet.energia || gameState.currentPet.energy || 70,
-        cleanliness: gameState.currentPet.limpieza || gameState.currentPet.cleanliness || 90
-    };
-    
-    console.log('🔄 Estadísticas mapeadas:', stats);
-    
-    // Guardar estadísticas en el objeto mascota
-    gameState.currentPet.stats = stats;
+    // Solo mapear estadísticas si no existen ya
+    if (!gameState.currentPet.stats) {
+        const stats = {
+            happiness: gameState.currentPet.felicidad || gameState.currentPet.happiness || 80,
+            hunger: gameState.currentPet.hambre || gameState.currentPet.hunger || 60,
+            energy: gameState.currentPet.energia || gameState.currentPet.energy || 70,
+            cleanliness: gameState.currentPet.limpieza || gameState.currentPet.cleanliness || 90
+        };
+        
+        console.log('🔄 Estadísticas mapeadas:', stats);
+        
+        // Guardar estadísticas en el objeto mascota
+        gameState.currentPet.stats = stats;
+    } else {
+        console.log('📊 Usando estadísticas existentes:', gameState.currentPet.stats);
+    }
     
     // Actualizar display inmediatamente
     updateStatsDisplay();
@@ -562,7 +576,7 @@ async function checkAvailableEndpoints() {
         for (const endpoint of testEndpoints) {
             try {
                 // Usar GET en lugar de OPTIONS para evitar problemas de CORS
-                const response = await fetch(window.getAPIUrl() + endpoint, {
+                const response = await fetch(getAPIUrl() + endpoint, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -591,7 +605,7 @@ async function checkAvailableEndpoints() {
 
 async function playWithPet() {
     if (!gameState.currentPet) {
-        showNotification('No tienes una mascota para jugar', 'error');
+        console.log('⚠️ No hay mascota para jugar');
         return;
     }
     
@@ -603,53 +617,53 @@ async function playWithPet() {
         if (response && response.pet) {
             console.log('✅ Juego exitoso via API');
             gameState.currentPet = response.pet;
-            
-            // Actualizar estadísticas inmediatamente
+            updatePetDisplay();
             updatePetStats();
             updateStatsDisplay();
-            updatePetEmojiState();
-            
             addCoins(3);
-            showNotification('¡Juego exitoso!', 'success');
-            animatePetAction('playing');
+            showNotification('🎮 ¡Juego exitoso!', 'success');
+            updatePetEmojiState();
             createPlayEffect();
-            
-            // Posible batalla espacial
             triggerBattleOnAction();
+        } else {
+            // Si la API no responde, usar modo local
+            console.log('🎮 Simulando juego local');
+            simulatePlayAction();
         }
         
     } catch (error) {
-        console.log('🎮 Simulando juego local');
-        
-        // Simulación local con cambios dramáticos
-        console.log('🎮 Simulando juego local');
-        
-        // Cambios dramáticos para visualización
-        gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 30);
-        gameState.currentPet.stats.energy = Math.max(0, gameState.currentPet.stats.energy - 20);
-        gameState.currentPet.stats.hunger = Math.max(0, gameState.currentPet.stats.hunger - 5);
-        
-        // Agregar monedas
-        gameState.userCoins += 3;
-        saveLocalCoins();
-        updateCoinsDisplay();
-        
-        // Actualizar display
-        updatePetStats();
-        updateStatsDisplay();
-        
-        // Efectos visuales
-        updatePetEmojiState();
-        createPlayEffect();
-        triggerBattleOnAction();
+        console.log('🚨 Error en juego, usando modo local');
+        simulatePlayAction();
     }
+}
+
+function simulatePlayAction() {
+    // Simulación local con cambios dramáticos
+    console.log('🎮 Simulando juego local');
     
-    updatePetDisplay();
+    // Cambios dramáticos para visualización
+    gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 30);
+    gameState.currentPet.stats.energy = Math.max(0, gameState.currentPet.stats.energy - 20);
+    gameState.currentPet.stats.hunger = Math.max(0, gameState.currentPet.stats.hunger - 5);
+    
+    // Agregar monedas
+    gameState.userCoins += 3;
+    saveLocalCoins();
+    updateCoinsDisplay();
+    
+    // Actualizar display
+    updatePetStats();
+    updateStatsDisplay();
+    
+    // Efectos visuales
+    updatePetEmojiState();
+    createPlayEffect();
+    triggerBattleOnAction();
 }
 
 async function feedPet() {
     if (!gameState.currentPet) {
-        showNotification('No tienes una mascota para alimentar', 'error');
+        console.log('⚠️ No hay mascota para alimentar');
         return;
     }
     
@@ -661,53 +675,64 @@ async function feedPet() {
         if (response && response.pet) {
             console.log('✅ Alimentación exitosa via API');
             gameState.currentPet = response.pet;
-            
-            // Actualizar estadísticas inmediatamente
+            updatePetDisplay();
             updatePetStats();
             updateStatsDisplay();
-            updatePetEmojiState();
-            
             addCoins(5);
-            showNotification('¡Alimentación exitosa!', 'success');
-            animatePetAction('eating');
+            showNotification('🍖 ¡Alimentación exitosa!', 'success');
+            updatePetEmojiState();
             createFeedEffect();
-            
-            // Posible batalla espacial
             triggerBattleOnAction();
+        } else {
+            // Si la API no responde, usar modo local
+            console.log('🍖 Simulando alimentación local');
+            simulateFeedAction();
         }
         
     } catch (error) {
-        console.log('🍖 Simulando alimentación local');
-        
-        // Simulación local con cambios dramáticos
-        console.log('🍖 Simulando alimentación local');
-        
-        // Cambios dramáticos para visualización
-        gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 25);
-        gameState.currentPet.stats.hunger = Math.min(100, gameState.currentPet.stats.hunger + 35);
-        gameState.currentPet.stats.energy = Math.max(0, gameState.currentPet.stats.energy - 10);
-        
-        // Agregar monedas
-        gameState.userCoins += 5;
-        saveLocalCoins();
-        updateCoinsDisplay();
-        
-        // Actualizar display
-        updatePetStats();
-        updateStatsDisplay();
-        
-        // Efectos visuales
-        updatePetEmojiState();
-        createFeedEffect();
-        triggerBattleOnAction();
+        console.log('🚨 Error en alimentación, usando modo local');
+        simulateFeedAction();
     }
+}
+
+function simulateFeedAction() {
+    // Simulación local con cambios dramáticos
+    console.log('🍖 Simulando alimentación local');
     
-    updatePetDisplay();
+    // Cambios dramáticos para visualización - forzar cambios visibles
+    const currentHappiness = gameState.currentPet.stats.happiness;
+    const currentHunger = gameState.currentPet.stats.hunger;
+    const currentEnergy = gameState.currentPet.stats.energy;
+    
+    // Forzar cambios visibles incluso si están en límites
+    gameState.currentPet.stats.happiness = Math.min(100, currentHappiness + 25);
+    gameState.currentPet.stats.hunger = Math.min(100, currentHunger + 35);
+    gameState.currentPet.stats.energy = Math.max(0, currentEnergy - 10);
+    
+    console.log('🍖 Cambios aplicados:', {
+        happiness: `${currentHappiness} → ${gameState.currentPet.stats.happiness}`,
+        hunger: `${currentHunger} → ${gameState.currentPet.stats.hunger}`,
+        energy: `${currentEnergy} → ${gameState.currentPet.stats.energy}`
+    });
+    
+    // Agregar monedas
+    gameState.userCoins += 5;
+    saveLocalCoins();
+    updateCoinsDisplay();
+    
+    // Actualizar display
+    updatePetStats();
+    updateStatsDisplay();
+    
+    // Efectos visuales
+    updatePetEmojiState();
+    createFeedEffect();
+    triggerBattleOnAction();
 }
 
 async function sleepPet() {
     if (!gameState.currentPet) {
-        showNotification('No tienes una mascota para dormir', 'error');
+        console.log('⚠️ No hay mascota para dormir');
         return;
     }
     
@@ -719,48 +744,53 @@ async function sleepPet() {
         if (response && response.pet) {
             console.log('✅ Sueño exitoso via API');
             gameState.currentPet = response.pet;
-            
-            // Actualizar estadísticas inmediatamente
+            updatePetDisplay();
             updatePetStats();
             updateStatsDisplay();
-            
             addCoins(3);
-            showNotification('¡Tu mascota durmió! +3 monedas', 'success');
-            animatePetAction('sleeping');
+            showNotification('😴 ¡Tu mascota durmió!', 'success');
+            updatePetEmojiState();
+            createSleepEffect();
+            triggerBattleOnAction();
+        } else {
+            // Si la API no responde, usar modo local
+            console.log('😴 Simulando sueño local');
+            simulateSleepAction();
         }
         
     } catch (error) {
-        console.log('😴 Simulando sueño local');
-        
-        // Simulación local con cambios dramáticos
-        console.log('😴 Simulando sueño local');
-        
-        // Cambios dramáticos para visualización
-        gameState.currentPet.stats.energy = Math.min(100, gameState.currentPet.stats.energy + 40);
-        gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 10);
-        gameState.currentPet.stats.hunger = Math.max(0, gameState.currentPet.stats.hunger - 10);
-        
-        // Agregar monedas
-        gameState.userCoins += 3;
-        saveLocalCoins();
-        updateCoinsDisplay();
-        
-        // Actualizar display
-        updatePetStats();
-        updateStatsDisplay();
-        
-        // Efectos visuales
-        updatePetEmojiState();
-        createSleepEffect();
-        triggerBattleOnAction();
+        console.log('🚨 Error en sueño, usando modo local');
+        simulateSleepAction();
     }
+}
+
+function simulateSleepAction() {
+    // Simulación local con cambios dramáticos
+    console.log('😴 Simulando sueño local');
     
-    updatePetDisplay();
+    // Cambios dramáticos para visualización
+    gameState.currentPet.stats.energy = Math.min(100, gameState.currentPet.stats.energy + 40);
+    gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 10);
+    gameState.currentPet.stats.hunger = Math.max(0, gameState.currentPet.stats.hunger - 10);
+    
+    // Agregar monedas
+    gameState.userCoins += 3;
+    saveLocalCoins();
+    updateCoinsDisplay();
+    
+    // Actualizar display
+    updatePetStats();
+    updateStatsDisplay();
+    
+    // Efectos visuales
+    updatePetEmojiState();
+    createSleepEffect();
+    triggerBattleOnAction();
 }
 
 async function curePet() {
     if (!gameState.currentPet) {
-        showNotification('No tienes una mascota para curar', 'error');
+        console.log('⚠️ No hay mascota para curar');
         return;
     }
     
@@ -772,54 +802,67 @@ async function curePet() {
         if (response && response.pet) {
             console.log('✅ Curación exitosa via API');
             gameState.currentPet = response.pet;
-            
-            // Actualizar estadísticas inmediatamente
+            updatePetDisplay();
             updatePetStats();
             updateStatsDisplay();
-            updatePetEmojiState();
-            
             addCoins(2);
-            showNotification('¡Curaste a tu mascota! +2 monedas', 'success');
-            animatePetAction('curing');
+            showNotification('💊 ¡Curaste a tu mascota!', 'success');
+            updatePetEmojiState();
             createHealEffect();
-            
-            // Posible batalla espacial
             triggerBattleOnAction();
+        } else {
+            // Si la API no responde, usar modo local
+            console.log('💊 Simulando curación local');
+            simulateCureAction();
         }
         
     } catch (error) {
-        console.log('💊 Simulando curación local');
-        
-        // Simulación local con cambios dramáticos
-        console.log('💊 Simulando curación local');
-        
-        // Cambios dramáticos para visualización
-        gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 20);
-        gameState.currentPet.stats.energy = Math.min(100, gameState.currentPet.stats.energy + 30);
-        gameState.currentPet.stats.hunger = Math.max(0, gameState.currentPet.stats.hunger - 10);
-        gameState.currentPet.stats.cleanliness = Math.min(100, gameState.currentPet.stats.cleanliness + 20);
-        
-        // Agregar monedas
-        gameState.userCoins += 2;
-        saveLocalCoins();
-        updateCoinsDisplay();
-        
-        // Actualizar display
-        updatePetStats();
-        updateStatsDisplay();
-        
-        // Efectos visuales
-        updatePetEmojiState();
-        createHealEffect();
-        triggerBattleOnAction();
+        console.log('🚨 Error en curación, usando modo local');
+        simulateCureAction();
     }
+}
+
+function simulateCureAction() {
+    // Simulación local con cambios dramáticos
+    console.log('💊 Simulando curación local');
     
-    updatePetDisplay();
+    // Cambios dramáticos para visualización - forzar cambios visibles
+    const currentHappiness = gameState.currentPet.stats.happiness;
+    const currentEnergy = gameState.currentPet.stats.energy;
+    const currentHunger = gameState.currentPet.stats.hunger;
+    const currentCleanliness = gameState.currentPet.stats.cleanliness;
+    
+    // Forzar cambios visibles incluso si están en límites
+    gameState.currentPet.stats.happiness = Math.min(100, currentHappiness + 20);
+    gameState.currentPet.stats.energy = Math.min(100, currentEnergy + 30);
+    gameState.currentPet.stats.hunger = Math.max(0, currentHunger - 10);
+    gameState.currentPet.stats.cleanliness = Math.min(100, currentCleanliness + 20);
+    
+    console.log('💊 Cambios aplicados:', {
+        happiness: `${currentHappiness} → ${gameState.currentPet.stats.happiness}`,
+        energy: `${currentEnergy} → ${gameState.currentPet.stats.energy}`,
+        hunger: `${currentHunger} → ${gameState.currentPet.stats.hunger}`,
+        cleanliness: `${currentCleanliness} → ${gameState.currentPet.stats.cleanliness}`
+    });
+    
+    // Agregar monedas
+    gameState.userCoins += 2;
+    saveLocalCoins();
+    updateCoinsDisplay();
+    
+    // Actualizar display
+    updatePetStats();
+    updateStatsDisplay();
+    
+    // Efectos visuales
+    updatePetEmojiState();
+    createHealEffect();
+    triggerBattleOnAction();
 }
 
 async function cleanPet() {
     if (!gameState.currentPet) {
-        showNotification('No tienes una mascota para limpiar', 'error');
+        console.log('⚠️ No hay mascota para limpiar');
         return;
     }
     
@@ -831,48 +874,48 @@ async function cleanPet() {
         if (response && response.pet) {
             console.log('✅ Limpieza exitosa via API');
             gameState.currentPet = response.pet;
-            
-            // Actualizar estadísticas inmediatamente
+            updatePetDisplay();
             updatePetStats();
             updateStatsDisplay();
-            updatePetEmojiState();
-            
             addCoins(2);
-            showNotification('¡Limpieza exitosa!', 'success');
-            animatePetAction('cleaning');
+            showNotification('🧼 ¡Limpieza exitosa!', 'success');
+            updatePetEmojiState();
             createCleanEffect();
-            
-            // Posible batalla espacial
             triggerBattleOnAction();
+        } else {
+            // Si la API no responde, usar modo local
+            console.log('🧼 Simulando limpieza local');
+            simulateCleanAction();
         }
         
     } catch (error) {
-        console.log('🧼 Simulando limpieza local');
-        
-        // Simulación local con cambios dramáticos
-        console.log('🧼 Simulando limpieza local');
-        
-        // Cambios dramáticos para visualización
-        gameState.currentPet.stats.cleanliness = Math.min(100, gameState.currentPet.stats.cleanliness + 40);
-        gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 15);
-        gameState.currentPet.stats.energy = Math.max(0, gameState.currentPet.stats.energy - 5);
-        
-        // Agregar monedas
-        gameState.userCoins += 2;
-        saveLocalCoins();
-        updateCoinsDisplay();
-        
-        // Actualizar display
-        updatePetStats();
-        updateStatsDisplay();
-        
-        // Efectos visuales
-        updatePetEmojiState();
-        createCleanEffect();
-        triggerBattleOnAction();
+        console.log('🚨 Error en limpieza, usando modo local');
+        simulateCleanAction();
     }
+}
+
+function simulateCleanAction() {
+    // Simulación local con cambios dramáticos
+    console.log('🧼 Simulando limpieza local');
     
-    updatePetDisplay();
+    // Cambios dramáticos para visualización
+    gameState.currentPet.stats.cleanliness = Math.min(100, gameState.currentPet.stats.cleanliness + 40);
+    gameState.currentPet.stats.happiness = Math.min(100, gameState.currentPet.stats.happiness + 15);
+    gameState.currentPet.stats.energy = Math.max(0, gameState.currentPet.stats.energy - 5);
+    
+    // Agregar monedas
+    gameState.userCoins += 2;
+    saveLocalCoins();
+    updateCoinsDisplay();
+    
+    // Actualizar display
+    updatePetStats();
+    updateStatsDisplay();
+    
+    // Efectos visuales
+    updatePetEmojiState();
+    createCleanEffect();
+    triggerBattleOnAction();
 }
 
 // Función para animar efectos de limpieza
@@ -1229,7 +1272,7 @@ async function createHero(heroData) {
         showLoading();
         
         console.log('🎯 Intentando crear superhéroe con datos:', heroData);
-        console.log('🌐 URL de la API:', window.getAPIUrl());
+        console.log('🌐 URL de la API:', getAPIUrl());
         
         const response = await apiRequest('/api/heroes', 'POST', heroData);
         
@@ -1377,7 +1420,7 @@ function updateStatsDisplay() {
         'cleanliness': { bar: 'cleanliness-bar', value: 'cleanliness-value' }
     };
     
-    // Actualizar cada barra inmediatamente
+    // Actualizar cada barra con animación gradual
     Object.entries(statBars).forEach(([statName, elements]) => {
         const barElement = document.getElementById(elements.bar);
         const valueElement = document.getElementById(elements.value);
@@ -1386,25 +1429,18 @@ function updateStatsDisplay() {
             const currentValue = stats[statName] || 0;
             const percentage = Math.max(0, Math.min(100, currentValue));
             
-            // Obtener el valor anterior para comparar
+            // Obtener el valor anterior
             const previousWidth = barElement.style.width || '0%';
             const previousPercentage = parseInt(previousWidth) || 0;
             
             console.log(`📊 ${statName}: ${previousPercentage}% → ${percentage}%`);
             
-            // Actualizar inmediatamente
-            barElement.style.width = percentage + '%';
-            valueElement.textContent = Math.round(percentage) + '%';
-            
-            // Agregar clase de animación temporal
+            // Agregar clase de animación
             barElement.classList.add('changing');
             valueElement.classList.add('changing');
             
-            // Remover clase después de un tiempo
-            setTimeout(() => {
-                barElement.classList.remove('changing');
-                valueElement.classList.remove('changing');
-            }, 500);
+            // Animar la barra gradualmente
+            animateBarChange(barElement, valueElement, previousPercentage, percentage);
             
             console.log(`✅ ${statName} actualizada: ${percentage}%`);
         }
@@ -1414,6 +1450,40 @@ function updateStatsDisplay() {
     setTimeout(() => {
         updateHealthStatus();
     }, 300);
+}
+
+// Función para animar el cambio de la barra gradualmente
+function animateBarChange(barElement, valueElement, fromValue, toValue) {
+    const steps = 20; // Más pasos para una animación más suave
+    const increment = (toValue - fromValue) / steps;
+    const stepTime = 50; // 50ms por paso (total 1 segundo de animación)
+    
+    let currentStep = 0;
+    
+    const animate = () => {
+        if (currentStep <= steps) {
+            const currentValue = fromValue + (increment * currentStep);
+            const finalValue = Math.max(0, Math.min(100, currentValue));
+            
+            barElement.style.width = finalValue + '%';
+            valueElement.textContent = Math.round(finalValue) + '%';
+            
+            currentStep++;
+            setTimeout(animate, stepTime);
+        } else {
+            // Asegurarse de que el valor final sea exacto
+            barElement.style.width = toValue + '%';
+            valueElement.textContent = Math.round(toValue) + '%';
+
+            // Remover clases de animación después de un tiempo
+            setTimeout(() => {
+                barElement.classList.remove('changing');
+                valueElement.classList.remove('changing');
+            }, 200); // Pequeño delay para que la animación CSS termine
+        }
+    };
+    
+    animate();
 }
 
 function updatePetAccessories() {
@@ -1559,39 +1629,41 @@ window.testAPIDirectly = testAPIDirectly;
 function initializeGame() {
     console.log('🎮 Inicializando juego...');
     
-    // Cargar configuración guardada
+    // Inicializar estado del juego
+    gameState = {
+        currentHero: null,
+        currentPet: null,
+        token: null,
+        userCoins: 0,
+        petAccessories: [],
+        ownedItems: []
+    };
+    
+    // Cargar datos guardados
+    const savedToken = localStorage.getItem('jwtToken');
+    const savedHeroName = localStorage.getItem('loggedInHeroName');
     const savedCoins = localStorage.getItem('userCoins');
+    const savedAccessories = localStorage.getItem('petAccessories');
+    
+    if (savedToken) {
+        gameState.token = savedToken;
+    }
+    
     if (savedCoins) {
         gameState.userCoins = parseInt(savedCoins);
-        console.log('💰 Monedas cargadas desde localStorage:', gameState.userCoins);
     }
     
-    // Cargar accesorios guardados
-    const savedAccessories = localStorage.getItem('petAccessories');
     if (savedAccessories) {
         gameState.petAccessories = JSON.parse(savedAccessories);
-        console.log('👕 Accesorios cargados:', gameState.petAccessories);
     }
     
-    // Cargar héroe guardado
-    const loggedInHeroName = localStorage.getItem('loggedInHeroName');
-    if (loggedInHeroName) {
-        console.log('🦸 Cargando héroe guardado:', loggedInHeroName);
-        loadHeroInfo(loggedInHeroName);
-    }
-    
-    // Inicializar barras de estadísticas con valores por defecto
+    // Inicializar barras de estadísticas
     initializeStatBars();
     
-    // Verificar conexión con API
-    checkAPIConnection();
+    // Mostrar pantalla de login
+    showLogin();
     
-    // Verificar endpoints disponibles
-    setTimeout(() => {
-        checkAvailableEndpoints();
-    }, 1000);
-    
-    console.log('✅ Juego inicializado correctamente');
+    console.log('✅ Juego inicializado');
 }
 
 // Función para inicializar las barras de estadísticas
