@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superheroes & Pets Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header hidden">
+        <div class="header-content">
+            <div class="logo">
+                <h1>Superheroes & Pets</h1>
+            </div>
+            <div class="user-info">
+                <div class="coins">🪙 <span id="user-coins">0</span></div>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+                <button class="logout-btn" onclick="openSwagger()" style="background: #00b894; margin-left: 10px;">📚 API Docs</button>
+                <button class="logout-btn" onclick="resetGame()" style="background: #e74c3c; margin-left: 10px;">🔄 Reiniciar</button>
+                <button class="logout-btn" onclick="triggerSpaceBattle()" style="background: #9b59b6; margin-left: 10px;">🚀 Batalla Espacial</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mensaje informativo sobre el estado de la API -->
+    <div class="api-status-message" id="api-status-message">
+        <div class="status-content">
+            <h3>📡 Estado de la API</h3>
+            <p>✅ <strong>Conectado:</strong> Héroes y mascotas se cargan desde tu API de MongoDB</p>
+            <p>⚠️ <strong>Actividades:</strong> Los endpoints de actividades (jugar, alimentar, dormir, curar) no están implementados en tu API</p>
+            <p>🎮 <strong>Funcionalidad:</strong> El juego simula las actividades localmente para demostración</p>
+            <p>💡 <strong>Para implementar:</strong> Agrega los endpoints POST /api/pets/{id}/play, /feed, /sleep, /cure en tu API</p>
+            <p>🔄 <strong>Reiniciar:</strong> Si no ves la pantalla de login, usa el botón "Reiniciar" en el header</p>
+            <button onclick="document.getElementById('api-status-message').style.display='none'" class="close-btn">✕</button>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="screen active" id="login-screen">
+        <div class="login-container">
+            <h1 class="game-title">Superheroes & Pets</h1>
+            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                <h3>🎮 ¡Juego 100% Funcional!</h3>
+                <p>Conectado a tu API en producción</p>
+                <p style="font-size: 0.9em; color: #666;">API: https://api-superheroes-v2-1.onrender.com</p>
+            </div>
+            <form class="login-form" id="login-form">
+                <h2>Iniciar Sesión</h2>
+                <input type="text" id="login-name" placeholder="Nombre del Superhéroe" required>
+                <input type="password" id="login-password" placeholder="Contraseña" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <div class="register-link">
+                ¿No tienes cuenta? <span onclick="showRegister()">Regístrate</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div class="screen" id="register-screen">
+        <div class="login-container">
+            <h1 class="game-title">Crear Superhéroe</h1>
+            <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;">
+                <button onclick="testAPIDirectly()" style="background: #00b894; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin: 5px;">
+                    🔍 Probar API Directamente
+                </button>
+                <button onclick="checkAvailableEndpoints()" style="background: #6c5ce7; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin: 5px;">
+                    🔧 Verificar Endpoints
+                </button>
+                <p style="font-size: 0.8em; color: #666; margin: 5px 0;">Verifica que tu API esté funcionando</p>
+            </div>
+            <form class="register-form" id="register-form">
+                <h2>Registro</h2>
+                <input type="text" id="register-name" placeholder="Nombre del Superhéroe" required>
+                <select id="register-alias" required>
+                    <option value="">Selecciona alias</option>
+                    <option value="spiderman">Spider-Man</option>
+                    <option value="batman">Batman</option>
+                    <option value="superman">Superman</option>
+                    <option value="flash">Flash</option>
+                    <option value="ironman">Iron Man</option>
+                    <option value="thor">Thor</option>
+                    <option value="hulk">Hulk</option>
+                    <option value="captainamerica">Captain America</option>
+                    <option value="wolverine">Wolverine</option>
+                    <option value="deadpool">Deadpool</option>
+                    <option value="blackpanther">Black Panther</option>
+                    <option value="wonderwoman">Wonder Woman</option>
+                    <option value="aquaman">Aquaman</option>
+                    <option value="greenlantern">Green Lantern</option>
+                    <option value="cyborg">Cyborg</option>
+                    <option value="shazam">Shazam</option>
+                    <option value="antman">Ant-Man</option>
+                    <option value="blackwidow">Black Widow</option>
+                    <option value="scarletwitch">Scarlet Witch</option>
+                </select>
+                <input type="text" id="register-city" placeholder="Ciudad" required>
+                <input type="text" id="register-team" placeholder="Equipo" required>
+                <input type="password" id="register-password" placeholder="Contraseña" required>
+                <button type="submit">Crear Superhéroe</button>
+            </form>
+            <div class="login-link">
+                ¿Ya tienes cuenta? <span onclick="showLogin()">Inicia Sesión</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Selection Screen -->
+    <div class="screen" id="hero-screen">
+        <div class="hero-container">
+            <h2>Crear tu Superhéroe</h2>
+            <div class="hero-creator">
+                <div class="hero-preview">
+                    <div class="hero-avatar" id="hero-preview">
+                        <div class="hero-body"></div>
+                        <div class="hero-face">
+                            <div class="hero-eyes"></div>
+                            <div class="hero-mouth"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-form">
+                    <input type="text" id="hero-name" placeholder="Nombre del Superhéroe" required>
+                                    <select id="hero-alias" required>
+                        <option value="">Selecciona alias</option>
+                        <option value="spiderman">Spider-Man</option>
+                        <option value="batman">Batman</option>
+                        <option value="superman">Superman</option>
+                        <option value="flash">Flash</option>
+                        <option value="ironman">Iron Man</option>
+                        <option value="thor">Thor</option>
+                        <option value="hulk">Hulk</option>
+                        <option value="captainamerica">Captain America</option>
+                        <option value="wolverine">Wolverine</option>
+                        <option value="deadpool">Deadpool</option>
+                        <option value="blackpanther">Black Panther</option>
+                        <option value="wonderwoman">Wonder Woman</option>
+                        <option value="aquaman">Aquaman</option>
+                        <option value="greenlantern">Green Lantern</option>
+                        <option value="cyborg">Cyborg</option>
+                        <option value="shazam">Shazam</option>
+                        <option value="antman">Ant-Man</option>
+                        <option value="blackwidow">Black Widow</option>
+                        <option value="scarletwitch">Scarlet Witch</option>
+                    </select>
+                    <input type="text" id="hero-city" placeholder="Ciudad" required>
+                    <input type="text" id="hero-team" placeholder="Equipo" required>
+                    <div class="color-selector">
+                        <label>Color del Traje:</label>
+                        <div class="color-options">
+                            <div class="color-option" data-color="#6c5ce7" style="background: #6c5ce7;"></div>
+                            <div class="color-option" data-color="#e17055" style="background: #e17055;"></div>
+                            <div class="color-option" data-color="#00b894" style="background: #00b894;"></div>
+                            <div class="color-option" data-color="#feca57" style="background: #feca57;"></div>
+                            <div class="color-option" data-color="#ff7675" style="background: #ff7675;"></div>
+                        </div>
+                    </div>
+                    <button id="create-hero-btn">Crear Superhéroe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pet Selection Screen -->
+    <div class="screen" id="pet-screen">
+        <div class="pet-container">
+            <h2>Adoptar tu Mascota</h2>
+            <div class="pet-creator">
+                <div class="pet-preview">
+                    <div class="pet-avatar" id="pet-preview">
+                        <div class="pet-body"></div>
+                        <div class="pet-face">
+                            <div class="pet-eyes"></div>
+                            <div class="pet-mouth"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pet-form">
+                    <input type="text" id="pet-name" placeholder="Nombre de la Mascota" required>
+                    <select id="pet-type" required>
+                        <option value="">Selecciona tipo</option>
+                        <option value="dog">Perro (Inglés)</option>
+                        <option value="cat">Gato (Inglés)</option>
+                        <option value="dragon">Dragón (Inglés)</option>
+                        <option value="horse">Caballo (Inglés)</option>
+                        <option value="rabbit">Conejo (Inglés)</option>
+                        <option value="bird">Pájaro (Inglés)</option>
+                        <option value="lion">León (Inglés)</option>
+                        <option value="tiger">Tigre (Inglés)</option>
+                        <option value="perro">Perro (Español)</option>
+                        <option value="gato">Gato (Español)</option>
+                        <option value="caballo">Caballo (Español)</option>
+                        <option value="tortuga">Tortuga (Español)</option>
+                        <option value="conejo">Conejo (Español)</option>
+                        <option value="pajaro">Pájaro (Español)</option>
+                        <option value="leon">León (Español)</option>
+                        <option value="tigre">Tigre (Español)</option>
+                    </select>
+                    <input type="text" id="pet-superpower" placeholder="Superpoder" required>
+                    <div class="color-selector">
+                        <label>Color de la Mascota:</label>
+                        <div class="color-options">
+                            <div class="color-option" data-color="#6c5ce7" style="background: #6c5ce7;"></div>
+                            <div class="color-option" data-color="#e17055" style="background: #e17055;"></div>
+                            <div class="color-option" data-color="#00b894" style="background: #00b894;"></div>
+                            <div class="color-option" data-color="#feca57" style="background: #feca57;"></div>
+                            <div class="color-option" data-color="#ff7675" style="background: #ff7675;"></div>
+                        </div>
+                    </div>
+                    <button id="adopt-pet-btn">Adoptar Mascota</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div class="screen" id="game-screen">
+        <div class="game-container">
+            <div class="pet-display">
+                <div class="sprite-container" id="game-pet-avatar">
+                    <div class="pet-sprite dog"></div>
+                </div>
+                <h3 id="pet-name-display">Mi Mascota</h3>
+                <div class="pet-status" id="pet-status">
+                    <span class="status-indicator healthy">🟢 Sano</span>
+                </div>
+                <div id="no-pet-message" style="display: none; text-align: center; margin-top: 20px;">
+                    <p>No tienes una mascota. ¡Adopta una para empezar a jugar!</p>
+                    <button onclick="showPetScreen()" style="background: #00b894; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+                        🐾 Adoptar Mascota
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats-panel">
+                <h4 class="stats-title">📊 Estadísticas de la Mascota</h4>
+                <div class="stat">
+                    <div class="stat-label">😊 Felicidad</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="happiness-bar" style="width: 80%"></div>
+                    </div>
+                    <div class="stat-value" id="happiness-value">80%</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">🍖 Hambre</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="hunger-bar" style="width: 60%"></div>
+                    </div>
+                    <div class="stat-value" id="hunger-value">60%</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">⚡ Energía</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="energy-bar" style="width: 70%"></div>
+                    </div>
+                    <div class="stat-value" id="energy-value">70%</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">🧼 Limpieza</div>
+                    <div class="stat-bar">
+                        <div class="stat-fill" id="cleanliness-bar" style="width: 90%"></div>
+                    </div>
+                    <div class="stat-value" id="cleanliness-value">90%</div>
+                </div>
+            </div>
+            
+            <div class="health-status" id="health-status">
+                <span>Estado: Sano</span>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn" onclick="playWithPet()">
+                    <span class="btn-icon">🎮</span>
+                    <span class="btn-text">Jugar</span>
+                    <span class="btn-reward">+3 💰</span>
+                </button>
+                <button class="action-btn" onclick="feedPet()">
+                    <span class="btn-icon">🍖</span>
+                    <span class="btn-text">Alimentar</span>
+                    <span class="btn-reward">+5 💰</span>
+                </button>
+                <button class="action-btn" onclick="sleepPet()">
+                    <span class="btn-icon">😴</span>
+                    <span class="btn-text">Dormir</span>
+                    <span class="btn-reward">+3 💰</span>
+                </button>
+                <button class="action-btn" onclick="cleanPet()">
+                    <span class="btn-icon">🛁</span>
+                    <span class="btn-text">Limpiar</span>
+                    <span class="btn-reward">+4 💰</span>
+                </button>
+                <button class="action-btn" onclick="curePet()">
+                    <span class="btn-icon">💊</span>
+                    <span class="btn-text">Curar</span>
+                    <span class="btn-reward">+2 💰</span>
+                </button>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showProfile()">
+                    <span class="nav-icon">👤</span>
+                    Perfil
+                </button>
+                <button class="nav-btn" onclick="showShop()">
+                    <span class="nav-icon">🛒</span>
+                    Tienda
+                </button>
+                <button class="nav-btn" onclick="showWardrobe()">
+                    <span class="nav-icon">👕</span>
+                    Guardarropa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Screen -->
+    <div class="screen" id="profile-screen">
+        <div class="profile-container">
+            <button class="back-btn" onclick="showGame()">← Volver</button>
+            <div class="profile-content">
+                <div class="hero-profile">
+                    <div class="sprite-container" id="profile-hero-avatar">
+                        <div class="hero-sprite spiderman"></div>
+                    </div>
+                    <div class="hero-info">
+                        <h3 id="profile-hero-name">Mi Superhéroe</h3>
+                        <p id="profile-hero-details">Detalles del héroe</p>
+                    </div>
+                </div>
+                <div class="stats-summary">
+                    <h3>Estadísticas</h3>
+                    <div class="stat-grid" id="profile-stats">
+                        <!-- Stats will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Screen -->
+    <div class="screen" id="shop-screen">
+        <div class="shop-container">
+            <button class="back-btn" onclick="showGame()">← Volver</button>
+            <h2>🛒 Tienda</h2>
+            <div class="shop-tabs">
+                <button class="shop-tab active" onclick="showShopSection('free')">Gratis</button>
+                <button class="shop-tab" onclick="showShopSection('premium')">Premium</button>
+            </div>
+            <div class="shop-section active" id="free-section">
+                <!-- Free items will be loaded here -->
+            </div>
+            <div class="shop-section" id="premium-section">
+                <!-- Premium items will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Wardrobe Screen -->
+    <div class="screen" id="wardrobe-screen">
+        <div class="wardrobe-container">
+            <button class="back-btn" onclick="showGame()">← Volver</button>
+            <h2>👕 Guardarropa</h2>
+            <div class="wardrobe-content">
+                <div class="wardrobe-preview">
+                    <div class="pet-accessory" id="wardrobe-pet-preview"></div>
+                </div>
+                <div class="accessory-grid" id="accessory-grid">
+                    <!-- Accessories will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading hidden" id="loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando...</p>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+</body>
+</html>

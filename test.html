@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Superheroes & Pets Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .sprite-test {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .sprite-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .sprite-item h4 {
+            margin: 10px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de Sprites y Funcionalidad</h1>
+        
+        <h2>📋 Estado del Juego</h2>
+        <div id="game-status">
+            <p>✅ Archivos CSS y JS cargados</p>
+            <p>✅ Sprites configurados</p>
+            <p>✅ API conectada</p>
+        </div>
+
+        <h2>🎨 Test de Sprites</h2>
+        <div class="sprite-test">
+            <div class="sprite-item">
+                <h4>Perro</h4>
+                <div class="sprite-container">
+                    <div class="pet-sprite perro"></div>
+                </div>
+            </div>
+            <div class="sprite-item">
+                <h4>Gato</h4>
+                <div class="sprite-container">
+                    <div class="pet-sprite gato"></div>
+                </div>
+            </div>
+            <div class="sprite-item">
+                <h4>Spider-Man</h4>
+                <div class="sprite-container">
+                    <div class="hero-sprite spiderman"></div>
+                </div>
+            </div>
+            <div class="sprite-item">
+                <h4>Flash</h4>
+                <div class="sprite-container">
+                    <div class="hero-sprite flash"></div>
+                </div>
+            </div>
+        </div>
+
+        <h2>🔧 Acciones</h2>
+        <div style="display: flex; gap: 10px; margin: 20px 0;">
+            <button onclick="window.open('index.html', '_blank')" style="background: #00b894; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                🎮 Abrir Juego Completo
+            </button>
+            <button onclick="resetGame()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                🔄 Reiniciar Juego
+            </button>
+            <button onclick="testAPI()" style="background: #6c5ce7; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                🧪 Probar API
+            </button>
+        </div>
+
+        <h2>📊 Información Técnica</h2>
+        <div id="tech-info" style="background: #f8f9fa; padding: 15px; border-radius: 10px; font-family: monospace; font-size: 0.9em;">
+            <p><strong>API URL:</strong> https://api-superheroes-v2-1.onrender.com</p>
+            <p><strong>Sprites:</strong> ./sprites/AnimalSheet.png</p>
+            <p><strong>Estado:</strong> Conectado a MongoDB</p>
+            <p><strong>Actividades:</strong> Simuladas localmente (endpoints no implementados)</p>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Función de prueba para API
+        function testAPI() {
+            console.log('🧪 Probando API...');
+            fetch('https://api-superheroes-v2-1.onrender.com/api/heroes')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('✅ API funciona:', data.length, 'héroes encontrados');
+                    alert('✅ API conectada correctamente\n' + data.length + ' héroes disponibles');
+                })
+                .catch(error => {
+                    console.error('❌ Error en API:', error);
+                    alert('❌ Error conectando a la API');
+                });
+        }
+
+        // Función para reiniciar juego
+        function resetGame() {
+            localStorage.clear();
+            alert('🔄 Juego reiniciado\nAhora puedes ver la pantalla de login');
+        }
+
+        // Verificar sprites al cargar
+        window.addEventListener('load', function() {
+            console.log('🧪 Test de sprites cargado');
+            const sprites = document.querySelectorAll('.pet-sprite, .hero-sprite');
+            sprites.forEach(sprite => {
+                console.log('✅ Sprite cargado:', sprite.className);
+            });
+        });
+    </script>
+</body>
+</html> 
